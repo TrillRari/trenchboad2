@@ -579,12 +579,12 @@ export default function SolanaHypeDashboard() {
                   <div className="text-xs text-white/60 truncate flex-1">{n.name}</div>
                 </div>
                 <div className="mt-2 grid grid-cols-2 text-xs gap-x-2 text-white/70">
-                  <div>Chg {timeframe}</div><div className="text-right" style={{color: color(n.priceChg)}}>{n.priceChg?.toFixed?.(2) ?? "0.00"}%</div>
+
                   
-                  <div>MC</div><div className="text-right"> {Number.isFinite(Number(n.fdvUsd)) ? `$${d3.format(",.0f")(n.fdvUsd)}` : "—"}</div>
-
+                  <div>Chg {timeframe}</div><div className="text-right" style={{color: color(n.priceChg)}}>{n.priceChg?.toFixed?.(2) ?? "0.00"}%</div>
+                  <div>MC</div><div className="text-right">{formatUSD0(getMC(n))}</div>
                   <div>Vol {timeframe}</div><div className="text-right">${d3.format(",.0f")(n.vol)}</div>
-
+                  <div>LiQ</div><div className="text-right">${d3.format(",.0f")(n.liquidity)}</div>
                   <div>Boost</div><div className="text-right">{n.boost || 0}</div>
                 </div>
                 {/* CA copiable + lien Solscan ; on stopPropagation pour ne pas ouvrir Dex en même temps */}
