@@ -109,19 +109,7 @@ export default function SolanaHypeDashboard() {
     return map;
   }
 
-  // 4) (Optionnel) Birdeye trending : on fusionne pour plus de signaux hype
-  async function fetchBirdeyeTrending(limit = 20) {
-    if (!birdeyeKey) return [];
-    try {
-      const url = `https://public-api.birdeye.so/defi/token_trending?chain=solana&sort_by=score&sort_type=desc&offset=0&limit=${limit}`;
-      const data = await getJSON(url, { headers: { "X-API-KEY": birdeyeKey, accept: "application/json" } });
-      const list = data?.data?.items || [];
-      return list.map(x => ({ chainId: "solana", tokenAddress: x.address, score: x.score }));
-    } catch (e) {
-      console.warn("Birdeye error:", e);
-      return [];
-    }
-  }
+
 
   // Birdeye: holders par token (on-demand pour le pop-up)
   async function fetchHolders(address){
@@ -492,7 +480,7 @@ export default function SolanaHypeDashboard() {
       <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Solana Hype Dashboard</span>
+            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Solana Trench Dashboard</span>
           </h1>
           <button onClick={load} className="rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20">
             {loading ? "Chargement…" : "Rafraîchir"}
