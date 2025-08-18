@@ -485,6 +485,44 @@ export default function SolanaHypeDashboard() {
     } catch {}
   }
 
+// Nettoie et convertit en nombre (gère "$", virgules, strings, bigint…)
+const toNum = (v) => {
+  if (v == null) return null;
+  if (typeof v === "number") return Number.isFinite(v) ? v : null;
+  if (typeof v === "bigint") return Number(v);
+  if (typeof v === "string") {
+    const cleaned = v.replace(/[^0-9.\-eE]/g, "");
+    const n = Number(cleaned);
+    return Number.isFinite(n) ? n : null;
+  }
+  return null;
+};
+
+const getMC = (n) => {
+  const candidates = [
+    n?.mcapUsd, n?.mcap, n?.marketCapUsd, n?.marketCap,
+    n?.fdvUsd, n?.fdv,
+    n?.token?.mcapUsd, n?.token?.marketCapUsd, n?.token?.fdvUsd,
+    n?.metrics?.marketCapUsd, n?.metrics?.fdvUsd
+  ];
+  for (const v of candidates) {
+    const num = toNum(v);
+    if (num != null) return num;
+  }
+  // fallback : prix * supply si dispo
+  if (n?.priceUsd && n?.circulatingSupply) {
+    const p = toNum(n.priceUsd), s = toNum(n.circulatingSupply);
+    if (p != null && s != null) {
+      const num = p * s;
+      return Number.isFinite(num) ? num : null;
+    }
+  }
+  return null;
+};
+
+const formatUSD0 = (v) => (v == null ? "—" : `$${d3.format(",.0f")(v)}`);
+
+  
   // ------------------ Render ------------------
   return (
     <div className="min-h-screen w-full bg-[#090a0f] text-white">
