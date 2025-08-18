@@ -535,11 +535,7 @@ export default function SolanaHypeDashboard() {
             <div className="text-xs text-white/60 mt-2">Astuce: le boost (DexScreener) mesure la mise en avant sur la plateforme et reflète souvent le buzz court terme.</div>
           </div>
 
-          <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60 space-y-2">
-            <div className="text-sm text-white/70">Birdeye (optionnel)</div>
-            <input className="w-full bg-[#0b0f14] border border-white/10 rounded-lg p-2" placeholder="X-API-KEY Birdeye (facultatif)" value={birdeyeKey} onChange={e=>setBirdeyeKey(e.target.value)} />
-            <div className="text-xs text-white/60">Ajoute la liste "Trending" Birdeye pour enrichir la hype (si vous avez une clé).</div>
-          </div>
+       
 
           {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-200">{error}</div>}
         </section>
