@@ -2,53 +2,11 @@
 <html lang="fr">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>Solana Trench Board</title>
-    <link rel="stylesheet" href="/src/style.css" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Solana Hype Dashboard (Beta)</title>
   </head>
   <body>
-    <header class="container">
-      <h1>Solana Trench Board</h1>
-      <p class="muted">
-        Colle des adresses de tokens Solana (séparées par des virgules) puis clique sur « Chercher ».
-      </p>
-    </header>
-
-    <main class="container">
-      <section class="card">
-        <label for="addresses" class="label">Adresses (comma-separated)</label>
-        <textarea id="addresses" class="input" rows="4" placeholder="Exemple : addr1, addr2, addr3"></textarea>
-        <div class="actions">
-          <button id="demoBtn" class="btn secondary">Remplir un exemple</button>
-          <button id="fetchBtn" class="btn primary">Chercher</button>
-        </div>
-        <div id="status" class="status"></div>
-      </section>
-
-      <section class="card">
-        <h2>Résultats</h2>
-        <div class="table-wrap">
-          <table id="results">
-            <thead>
-              <tr>
-                <th>Nom</th>
-                <th>Symbole</th>
-                <th>Adresse</th>
-                <th>Prix (USD)</th>
-                <th>Δ 24h (%)</th>
-                <th>Volume 24h (USD)</th>
-                <th>FDV (USD)</th>
-              </tr>
-            </thead>
-            <tbody>
-              <!-- Lignes injectées par JS -->
-            </tbody>
-          </table>
-        </div>
-      </section>
-    </main>
-
-    <!-- JS séparé pour éviter toute erreur de parsing -->
-    <script type="module" src="/src/main.js"></script>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
