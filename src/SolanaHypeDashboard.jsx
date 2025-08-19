@@ -521,7 +521,7 @@ export default function App() {
       )}
 
       <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text-white/40">
-        Données: DexScreener (API publique). Ceci n'est pas un conseil financier.
+       Built on Solana | All rights reserved © 2025
       </footer>
     </div>
   );
