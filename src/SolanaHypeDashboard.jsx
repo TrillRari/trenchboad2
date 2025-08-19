@@ -3,12 +3,12 @@ import * as d3 from "d3";
 
 /**
  * Solana Trench Board — Dashboard (React + D3)
+ * - Bandeau pub 1 slot, rotation ~8s
  * - Bubble map avec score "hype"
- * - Liste "Top par hype"
- * - MC (Market Cap) affiché juste sous Chg
+ * - Liste "Top par hype" (MC sous Chg)
  */
 
-export default function SolanaHypeDashboard() {
+export default function App() {
   // ------------------ UI State ------------------
   const [timeframe, setTimeframe] = useState("h1"); // m5|h1|h6|h24
   const [minLiq, setMinLiq] = useState(20000);
@@ -118,7 +118,7 @@ export default function SolanaHypeDashboard() {
       const addr  = p.baseToken?.address;
       const vol   = pick(p.volume, timeframe === "m5" ? "m5" : timeframe, 0);
       const txn   = (p.txns?.[timeframe]?.buys || 0) + (p.txns?.[timeframe]?.sells || 0);
-      const txnH1 = (p.txns?.h1?.buys || 0) + (p.txns?.h1?.sells || 0); // pour le pop-up
+      const txnH1 = (p.txns?.h1?.buys || 0) + (p.txns?.h1?.sells || 0); // pour pop-up
       const priceChg = pick(p.priceChange, timeframe, 0);
       const boost = boostMap.get(addr) || 0;
 
@@ -316,6 +316,13 @@ export default function SolanaHypeDashboard() {
     } catch {}
   }
 
+  // ------------------ Ads (bandeau) ------------------
+  const ads = [
+    { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
+    { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", icon: "helmet" },
+    { id: "ex2",     label: "Get whale alerts with ", brand: "WhaleWatch", href: "#", note: "Example ad — replace link" }
+  ];
+
   // ------------------ Render ------------------
   return (
     <div className="min-h-screen w-full bg-[#090a0f] text-white">
@@ -329,6 +336,8 @@ export default function SolanaHypeDashboard() {
           </button>
         </div>
       </header>
+
+      <AdBanner ads={ads} intervalMs={8000} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Panneau de contrôle */}
@@ -404,7 +413,7 @@ export default function SolanaHypeDashboard() {
                 <div className="mt-2 grid grid-cols-2 text-xs gap-x-2 text-white/70">
                   <div>Chg {timeframe}</div><div className="text-right" style={{color: color(n.priceChg)}}>{(isFinite(n.priceChg)?n.priceChg.toFixed(2):0)}%</div>
 
-                  {/* MC ajouté sous Chg */}
+                  {/* MC sous Chg */}
                   <div>MC</div><div className="text-right">{n.mc ? `$${d3.format(",.0f")(n.mc)}` : "—"}</div>
 
                   <div>Vol {timeframe}</div><div className="text-right">${d3.format(",.0f")(n.vol)}</div>
@@ -477,6 +486,41 @@ export default function SolanaHypeDashboard() {
   );
 }
 
+/* --------- Bandeau pub (1 slot) --------- */
+function AdBanner({ ads = [], intervalMs = 8000 }) {
+  const [i, setI] = React.useState(0);
+  React.useEffect(() => {
+    if (!ads.length) return;
+    const t = setInterval(() => setI(v => (v + 1) % ads.length), intervalMs);
+    return () => clearInterval(t);
+  }, [ads.length, intervalMs]);
+
+  const ad = ads.length ? ads[i % ads.length] : null;
+  if (!ad) return null;
+
+  return (
+    <section className="bg-[#0f1117]/60 border-b border-white/10">
+      <div className="max-w-7xl mx-auto px-4 py-3">
+        <div className="rounded-xl border border-white/10 bg-[#0b0f14] px-4 py-3 flex items-center justify-between gap-3 hover:border-white/30 transition">
+          <div className="flex items-center gap-2">
+            {ad.icon === "helmet" ? <WarHelmetIcon className="w-5 h-5 opacity-80" /> : null}
+            <div className="text-sm">
+              <span className="text-white/80">{ad.label}</span>
+              <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">
+                {ad.brand}
+              </a>
+              {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
+            </div>
+          </div>
+          <svg className="w-5 h-5 opacity-60 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+            <path d="M9 18l6-6-6-6"/>
+          </svg>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 /* --------- Composants utilitaires --------- */
 function Slider({ label, value, onChange }) {
   return (
@@ -502,6 +546,17 @@ function CopyIcon({ className }){
          strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
       <rect x="9" y="9" width="13" height="13" rx="2"></rect>
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+    </svg>
+  );
+}
+
+/* Petit logo casque (SVG inline) */
+function WarHelmetIcon({ className }) {
+  return (
+    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
+      {/* Simple helmet shape */}
+      <path d="M12 3c-4.97 0-9 3.58-9 8v5a2 2 0 0 0 2 2h2v-4a1 1 0 0 1 1-1h3v-2H7a1 1 0 0 1-.9-.56 7 7 0 0 1 13.8 0A1 1 0 0 1 19 11h-4v2h3a1 1 0 0 1 1 1v4h2a2 2 0 0 0 2-2v-5c0-4.42-4.03-8-9-8z"/>
+      <rect x="10.5" y="14" width="3" height="6" rx="0.5" />
     </svg>
   );
 }
