@@ -85,7 +85,8 @@ export default function App() {
     setLoading(true); setError("");
     try {
       const boosts = await fetchBoosts();
-      const addrList = Array.from(new Set(boosts.map(b => b.tokenAddress))).slice(0, limit);
+      const SAMPLE = Math.max(limit * 5, 120);
+      const addrList = Array.from(new Set(boosts.map(b => b.tokenAddress))).slice(0, SAMPLE);
       const pairsMap = await fetchPairs(addrList);
       const profMap  = await fetchProfiles();
       setRawBoosts(boosts);
@@ -169,9 +170,11 @@ export default function App() {
     svg.selectAll("*").remove();
     const { w, h } = dims;
 
+    const maxR = Math.min(90, Math.max(24, Math.min(w, h) / 9));
+    const minR = nodes.length > 150 ? 5 : nodes.length > 100 ? 7 : nodes.length > 60 ? 9 : 12;
     const r = d3.scaleSqrt()
       .domain([0, d3.max(nodes.map(n => n.hype)) || 1])
-      .range([16, Math.min(100, Math.max(32, Math.min(w, h) / 7))]);
+      .range([minR, maxR]);
 
     const defs = svg.append("defs");
     const gradBG = defs.append("radialGradient").attr("id", "bg").attr("cx", "50%").attr("cy", "0%");
@@ -189,6 +192,7 @@ export default function App() {
       tooltip.html(
         `<div class='font-semibold mb-1'>${d.symbol} · <span class='text-white/70'>${d.name}</span></div>
          <div class='grid grid-cols-2 gap-x-6 gap-y-1 text-white/80'>
+           <div>MC</div><div class='text-right'>${d.mc ? '$' + d3.format(",.0f")(d.mc) : '—'}</div>
            <div>Prix</div><div class='text-right'>$${d.priceUsd.toFixed(6)}</div>
            <div>Chg ${timeframe}</div><div class='text-right' style='color:${color(d.priceChg)}'>${(isFinite(d.priceChg)?d.priceChg.toFixed(2):0)}%</div>
            <div>Vol ${timeframe}</div><div class='text-right'>$${d3.format(",.0f")(d.vol)}</div>
@@ -210,11 +214,22 @@ export default function App() {
     zoomRef.current = { svg, zoomBehavior };
 
     const sim = d3.forceSimulation(nodes)
-      .force("charge", d3.forceManyBody().strength(2))
-      .force("collide", d3.forceCollide().radius(d => r(d.hype) + 2))
-      .force("x", d3.forceX(w / 2).strength(0.05))
-      .force("y", d3.forceY(h / 2).strength(0.05))
-      .alpha(1).alphaDecay(0.03);
+      .velocityDecay(0.35)
+      .force("charge", d3.forceManyBody().strength(1.5))
+      .force("collide", d3.forceCollide().radius(d => r(d.hype) + 1.5).iterations(2))
+      .force("x", d3.forceX(w / 2).strength(0.03))
+      .force("y", d3.forceY(h / 2).strength(0.03))
+      .alpha(0.7).alphaDecay(0.015)
+      .alphaTarget(0.02);
+
+    // Légère dérive du centre pour un mouvement continu
+    const drift = d3.timer((elapsed) => {
+      const t = elapsed / 1000;
+      const cx = w / 2 + Math.sin(t * 0.20) * 12;
+      const cy = h / 2 + Math.cos(t * 0.17) * 12;
+      sim.force("x", d3.forceX(cx).strength(0.03));
+      sim.force("y", d3.forceY(cy).strength(0.03));
+    });
 
     const node = g.selectAll("g.node").data(nodes, d => d.id).join(enter => {
       const wrap = enter.append("g").attr("class", "node cursor-pointer").call(drag(sim));
@@ -301,7 +316,7 @@ export default function App() {
       return d3.drag().on("start", dragstarted).on("drag", dragged).on("end", dragended);
     }
 
-    return () => { sim.stop(); hideTooltip(); };
+    return () => { sim.stop(); drift.stop(); hideTooltip(); };
   }, [nodes, dims, timeframe]);
 
   // ------------------ Zoom buttons ------------------
@@ -333,7 +348,7 @@ export default function App() {
       <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent"> Trench Board</span>
+            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Trench Board</span>
           </h1>
           <button onClick={load} className="rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20">
             {loading ? "Chargement…" : "Rafraîchir"}
@@ -361,7 +376,7 @@ export default function App() {
                 <input type="number" className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" value={minLiq} onChange={e=>setMinLiq(+e.target.value || 0)} />
               </label>
               <label className="text-sm">Nombre de tokens
-                <input type="number" className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" value={limit} onChange={e=>setLimit(Math.max(5, Math.min(100, +e.target.value || 20)))} />
+                <input type="number" className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" value={limit} onChange={e=>setLimit(Math.max(5, Math.min(300, +e.target.value || 20)))} />
               </label>
               <label className="text-sm">Filtre (nom/symbole)
                 <input className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" placeholder="ex: JUP, BONK" value={query} onChange={e=>setQuery(e.target.value)} />
@@ -506,7 +521,7 @@ export default function App() {
       )}
 
       <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text-white/40">
-        Built on Solana | All rights reserved © 2025
+        Données: DexScreener (API publique). Ceci n'est pas un conseil financier.
       </footer>
     </div>
   );
