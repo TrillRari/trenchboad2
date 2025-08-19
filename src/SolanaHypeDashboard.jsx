@@ -3,10 +3,18 @@ import * as d3 from "d3";
 
 /**
  * Solana Trench Board — Dashboard (React + D3)
- * - Bandeau pub 1 slot, rotation ~8s
- * - Bubble map avec score "hype"
- * - Liste "Top par hype" (MC sous Chg)
+ * - Bandeau pub 1 slot (texte centré), rotation ~8s, 🪖 pour Trenchor
+ * - Bubble map + Top par hype (MC sous Chg)
+ * - Pop-up: boutons Axiom & Trojan à côté de DexScreener et Copy CA
  */
+
+// Helpers URL (et mini-tests plus bas)
+function buildAxiomUrl(ca, username = "lehunnid") {
+  return `https://axiom.trade/t/${ca}/@${username}`;
+}
+function buildTrojanUrl(ca, ref = "reelchasin") {
+  return `https://t.me/solana_trojanbot?start=r-${ref}-${ca}`;
+}
 
 export default function App() {
   // ------------------ UI State ------------------
@@ -93,12 +101,7 @@ export default function App() {
   useEffect(() => { load(); }, [limit]);
 
   // ------------------ Helpers ------------------
-  function pick(obj, key, fallback = 0) {
-    if (!obj) return fallback;
-    const v = obj[key];
-    if (v == null) return fallback;
-    return +v || 0;
-  }
+  const pick = (obj, key, fallback = 0) => (obj && obj[key] != null ? (+obj[key] || 0) : fallback);
 
   // ------------------ Nœuds (bubbles) ------------------
   const nodes = useMemo(() => {
@@ -118,7 +121,7 @@ export default function App() {
       const addr  = p.baseToken?.address;
       const vol   = pick(p.volume, timeframe === "m5" ? "m5" : timeframe, 0);
       const txn   = (p.txns?.[timeframe]?.buys || 0) + (p.txns?.[timeframe]?.sells || 0);
-      const txnH1 = (p.txns?.h1?.buys || 0) + (p.txns?.h1?.sells || 0); // pour pop-up
+      const txnH1 = (p.txns?.h1?.buys || 0) + (p.txns?.h1?.sells || 0); // pop-up
       const priceChg = pick(p.priceChange, timeframe, 0);
       const boost = boostMap.get(addr) || 0;
 
@@ -126,8 +129,7 @@ export default function App() {
       const nVol   = volScale(vol);
       const nTxn   = txnScale(txn);
       const nBoost = boostScale(boost);
-
-      const hype = nPrice * weights.price + nVol * weights.volume + nTxn * weights.txns + nBoost * weights.boost;
+      const hype   = nPrice * weights.price + nVol * weights.volume + nTxn * weights.txns + nBoost * weights.boost;
 
       const icon   = profiles[addr]?.icon || p.info?.imageUrl || "";
       const name   = p.baseToken?.name   || "?";
@@ -233,7 +235,7 @@ export default function App() {
         }
       });
 
-      // Pastille logo dans la bulle
+      // Pastille logo
       wrap.each(function(d){
         if(!d.icon) return;
         const R = r(d.hype);
@@ -316,12 +318,12 @@ export default function App() {
     } catch {}
   }
 
-  // ------------------ Ads (bandeau) ------------------
+  // ------------------ Ads (bandeau, 1 slot, centré) ------------------
   const ads = [
-  { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
-  { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", emoji: "🪖" },
-  { id: "photon",  label: "Be the first on any token with ", brand: "Photon", href: "https://photon-sol.tinyastro.io/@cryptohustlers", note: "Catch listings first. Move fast." }
-];
+    { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
+    { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", emoji: "🪖" },
+    { id: "photon",  label: "Be the first on any token with ", brand: "Photon", href: "https://photon-sol.tinyastro.io/@cryptohustlers", note: "Catch listings first. Move fast." }
+  ];
 
   // ------------------ Render ------------------
   return (
@@ -337,7 +339,7 @@ export default function App() {
         </div>
       </header>
 
-      <AdBanner ads={ads} intervalMs={8000} />
+      <AdBanner ads={ads} intervalMs={8000} selectedCA={selected?.id} />
 
       <main className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Panneau de contrôle */}
@@ -377,7 +379,7 @@ export default function App() {
           {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-200">{error}</div>}
         </section>
 
-        {/* Bubble chart + contrôles de zoom */}
+        {/* Bubble chart */}
         <section className="lg:col-span-8 p-2 rounded-2xl border border-white/10 bg-[#0f1117]/60">
           <div className="relative">
             <svg ref={svgRef} width={dims.w} height={dims.h} />
@@ -398,7 +400,7 @@ export default function App() {
           <div className="text-sm text-white/70 mb-2">Top par hype</div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {nodes.slice(0, 24).map(n => (
-              <a key={n.id} href={n.url} target="_blank" rel="noreferrer" className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14]">
+              <a key={n.id} href={buildAxiomUrl(n.id)} target="_blank" rel="noreferrer" className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14]">
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10">
                     {n.icon ? (
@@ -412,10 +414,7 @@ export default function App() {
                 </div>
                 <div className="mt-2 grid grid-cols-2 text-xs gap-x-2 text-white/70">
                   <div>Chg {timeframe}</div><div className="text-right" style={{color: color(n.priceChg)}}>{(isFinite(n.priceChg)?n.priceChg.toFixed(2):0)}%</div>
-
-                  {/* MC sous Chg */}
                   <div>MC</div><div className="text-right">{n.mc ? `$${d3.format(",.0f")(n.mc)}` : "—"}</div>
-
                   <div>Vol {timeframe}</div><div className="text-right">${d3.format(",.0f")(n.vol)}</div>
                   <div>LiQ</div><div className="text-right">${d3.format(",.0f")(n.liquidity)}</div>
                   <div>Boost</div><div className="text-right">{n.boost || 0}</div>
@@ -466,13 +465,25 @@ export default function App() {
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Prix<br/><span className="font-semibold">${(selected.priceUsd ?? 0).toFixed(6)}</span></div>
             </div>
 
+            {/* BOUTONS: Copy CA, DexScreener, Axiom, Trojan */}
             <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs">
               <a href={`https://solscan.io/token/${selected.id}`} target="_blank" rel="noreferrer" className="text-blue-300 hover:underline">{short(selected.id)}</a>
-              <div className="flex items-center gap-2">
-                <button className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" onClick={()=>handleCopy(selected.id)}>
+              <div className="flex items-center gap-2 flex-wrap">
+                <button
+                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                  onClick={()=>handleCopy(selected.id)}
+                >
                   <CopyIcon className="w-3 h-3"/> {copiedId===selected.id ? "Copié" : "Copy CA"}
                 </button>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={selected.url} target="_blank" rel="noreferrer">DexScreener</a>
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={selected.url} target="_blank" rel="noreferrer">
+                  DexScreener
+                </a>
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
+                  Axiom
+                </a>
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
+                  Trojan
+                </a>
               </div>
             </div>
           </div>
@@ -486,8 +497,8 @@ export default function App() {
   );
 }
 
-/* --------- Bandeau pub (1 slot) --------- */
-function AdBanner({ ads = [], intervalMs = 8000 }) {
+/* --------- Bandeau pub (1 slot, centré) --------- */
+function AdBanner({ ads = [], intervalMs = 8000, selectedCA }) {
   const [i, setI] = React.useState(0);
   React.useEffect(() => {
     if (!ads.length) return;
@@ -500,22 +511,29 @@ function AdBanner({ ads = [], intervalMs = 8000 }) {
 
   return (
     <section className="bg-[#0f1117]/60 border-b border-white/10">
-      <div className="max-w-7xl mx-auto px-4 py-3">
-        <div className="rounded-xl border border-white/10 bg-[#0b0f14] px-4 py-3 flex items-center justify-between gap-3 hover:border-white/30 transition">
-          <div className="flex items-center gap-2">
-            {ad.emoji ? <span className="text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
-            <div className="text-sm">
-              <span className="text-white/80">{ad.label}</span>
-              <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">
-                {ad.brand}
-              </a>
-              {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
-            </div>
-          </div>
-          <svg className="w-5 h-5 opacity-60 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M9 18l6-6-6-6"/>
-          </svg>
+      <div className="max-w-7xl mx-auto px-4">
+        <div className="h-14 md:h-16 flex items-center justify-center text-center">
+          {ad.emoji ? <span className="mr-2 text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
+          <span className="text-sm">
+            <span className="text-white/80">{ad.label}</span>
+            <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">{ad.brand}</a>
+            {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
+          </span>
         </div>
+        {selectedCA && (
+          <div className="pb-3 flex items-center justify-center gap-2 flex-wrap">
+            <a
+              href={buildAxiomUrl(selectedCA)}
+              target="_blank" rel="noreferrer"
+              className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
+            >Axiom</a>
+            <a
+              href={buildTrojanUrl(selectedCA)}
+              target="_blank" rel="noreferrer"
+              className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
+            >Trojan</a>
+          </div>
+        )}
       </div>
     </section>
   );
@@ -550,4 +568,12 @@ function CopyIcon({ className }){
   );
 }
 
-
+// ------------------ Mini-tests (dev) ------------------
+if (typeof window !== 'undefined') {
+  (function(){
+    const ca = '9em5B5cjY7VYGCcEuqnbSDLViezXFgwhPDiAXTospump';
+    console.assert(buildAxiomUrl(ca).startsWith('https://axiom.trade/t/'), 'Axiom URL prefix');
+    console.assert(buildAxiomUrl(ca).includes(`/${ca}/@lehunnid`), 'Axiom URL structure includes CA and @lehunnid');
+    console.assert(buildTrojanUrl(ca).endsWith(`-${ca}`), 'Trojan URL ends with -<CA>');
+  })();
+}
