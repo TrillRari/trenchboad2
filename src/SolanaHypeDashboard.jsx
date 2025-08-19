@@ -193,8 +193,8 @@ export default function App() {
         `<div class='font-semibold mb-1'>${d.symbol} · <span class='text-white/70'>${d.name}</span></div>
          <div class='grid grid-cols-2 gap-x-6 gap-y-1 text-white/80'>
            <div>MC</div><div class='text-right'>${d.mc ? '$' + d3.format(",.0f")(d.mc) : '—'}</div>
-           <div>Prix</div><div class='text-right'>$${d.priceUsd.toFixed(6)}</div>
            <div>Chg ${timeframe}</div><div class='text-right' style='color:${color(d.priceChg)}'>${(isFinite(d.priceChg)?d.priceChg.toFixed(2):0)}%</div>
+           <div>Prix</div><div class='text-right'>$${d.priceUsd.toFixed(6)}</div>
            <div>Vol ${timeframe}</div><div class='text-right'>$${d3.format(",.0f")(d.vol)}</div>
            <div>Txns ${timeframe}</div><div class='text-right'>${d.txn}</div>
            <div>Boost</div><div class='text-right'>${d.boost || 0}</div>
