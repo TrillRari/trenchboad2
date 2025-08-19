@@ -3,12 +3,13 @@ import * as d3 from "d3";
 
 /**
  * Solana Trench Board — Dashboard (React + D3)
- * - Bandeau pub 1 slot (texte centré), rotation ~8s, 🪖 pour Trenchor
+ * - Bandeau pub 1 slot (texte centré), rotation ~8s, fade simple
  * - Bubble map + Top par hype (MC sous Chg)
  * - Pop-up: boutons Axiom & Trojan à côté de DexScreener et Copy CA
+ * - Cartes Top par hype: clic ouvre Axiom (ref @lehunnid), plus d’ancres imbriquées
  */
 
-// Helpers URL (et mini-tests plus bas)
+// URL helpers
 function buildAxiomUrl(ca, username = "lehunnid") {
   return `https://axiom.trade/t/${ca}/@${username}`;
 }
@@ -200,7 +201,7 @@ export default function App() {
       .style("top",  `${event.pageY + 16}px`)
       .classed("hidden", false);
     }
-    function hideTooltip(){ tooltip.classed("hidden", true).remove(); }
+    function hideTooltip(){ tooltip.classed("hidden", true); } // ne pas remove()
 
     const zoomBehavior = d3.zoom().scaleExtent([0.5, 6]).on("zoom", (ev) => {
       g.attr("transform", ev.transform);
@@ -331,7 +332,7 @@ export default function App() {
       <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
           <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Trench Board</span>
+            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent"> Trench Board</span>
           </h1>
           <button onClick={load} className="rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20">
             {loading ? "Chargement…" : "Rafraîchir"}
@@ -400,7 +401,14 @@ export default function App() {
           <div className="text-sm text-white/70 mb-2">Top par hype</div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {nodes.slice(0, 24).map(n => (
-              <a key={n.id} href={buildAxiomUrl(n.id)} target="_blank" rel="noreferrer" className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14]">
+              <div
+                key={n.id}
+                role="link"
+                tabIndex={0}
+                onClick={() => window.open(buildAxiomUrl(n.id), "_blank", "noopener,noreferrer")}
+                onKeyDown={(e) => { if (e.key === "Enter") window.open(buildAxiomUrl(n.id), "_blank", "noopener,noreferrer"); }}
+                className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14] cursor-pointer"
+              >
                 <div className="flex items-center gap-2">
                   <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10">
                     {n.icon ? (
@@ -420,16 +428,22 @@ export default function App() {
                   <div>Boost</div><div className="text-right">{n.boost || 0}</div>
                 </div>
                 <div className="mt-2 flex items-center justify-between text-xs">
-                  <a href={`https://solscan.io/token/${n.id}`} target="_blank" rel="noreferrer" onClick={(e)=> e.stopPropagation()} className="text-blue-300 hover:underline">{short(n.id)}</a>
+                  <button
+                    className="text-blue-300 hover:underline"
+                    onClick={(e)=>{ e.stopPropagation(); window.open(`https://solscan.io/token/${n.id}`, "_blank", "noopener,noreferrer"); }}
+                    title="Voir sur Solscan"
+                  >
+                    {short(n.id)}
+                  </button>
                   <button
                     className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
-                    onClick={(e)=>{ e.preventDefault(); e.stopPropagation(); handleCopy(n.id); }}
+                    onClick={(e)=>{ e.stopPropagation(); handleCopy(n.id); }}
                     title="Copier le CA"
                   >
                     <CopyIcon className="w-3 h-3" /> {copiedId===n.id ? "Copié" : "Copy"}
                   </button>
                 </div>
-              </a>
+              </div>
             ))}
           </div>
         </section>
@@ -497,10 +511,10 @@ export default function App() {
   );
 }
 
-/* --------- Bandeau pub (1 slot, centré) --------- */
+/* --------- Bandeau pub (1 slot, centré, fade) --------- */
 function AdBanner({ ads = [], intervalMs = 8000, selectedCA }) {
   const [i, setI] = React.useState(0);
-  React.useEffect(() => {
+  useEffect(() => {
     if (!ads.length) return;
     const t = setInterval(() => setI(v => (v + 1) % ads.length), intervalMs);
     return () => clearInterval(t);
@@ -511,29 +525,34 @@ function AdBanner({ ads = [], intervalMs = 8000, selectedCA }) {
 
   return (
     <section className="bg-[#0f1117]/60 border-b border-white/10">
+      {/* Fade simple via keyframes */}
+      <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}} .ad-fade{animation:adFade .9s ease-in-out}`}</style>
       <div className="max-w-7xl mx-auto px-4">
-        <div className="h-14 md:h-16 flex items-center justify-center text-center">
-          {ad.emoji ? <span className="mr-2 text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
-          <span className="text-sm">
-            <span className="text-white/80">{ad.label}</span>
-            <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">{ad.brand}</a>
-            {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
-          </span>
-        </div>
-        {selectedCA && (
-          <div className="pb-3 flex items-center justify-center gap-2 flex-wrap">
-            <a
-              href={buildAxiomUrl(selectedCA)}
-              target="_blank" rel="noreferrer"
-              className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-            >Axiom</a>
-            <a
-              href={buildTrojanUrl(selectedCA)}
-              target="_blank" rel="noreferrer"
-              className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-            >Trojan</a>
+        <div key={ad.id} className="ad-fade">
+          <div className="h-10 md:h-12 flex items-center justify-center text-center">
+            {ad.emoji ? <span className="mr-2 text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
+            <span className="text-sm">
+              <span className="text-white/80">{ad.label}</span>
+              <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">{ad.brand}</a>
+              {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
+            </span>
           </div>
-        )}
+
+          {selectedCA && (
+            <div className="pb-3 flex items-center justify-center gap-2 flex-wrap">
+              <a
+                href={buildAxiomUrl(selectedCA)}
+                target="_blank" rel="noreferrer"
+                className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
+              >Axiom</a>
+              <a
+                href={buildTrojanUrl(selectedCA)}
+                target="_blank" rel="noreferrer"
+                className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
+              >Trojan</a>
+            </div>
+          )}
+        </div>
       </div>
     </section>
   );
@@ -566,14 +585,4 @@ function CopyIcon({ className }){
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
   );
-}
-
-// ------------------ Mini-tests (dev) ------------------
-if (typeof window !== 'undefined') {
-  (function(){
-    const ca = '9em5B5cjY7VYGCcEuqnbSDLViezXFgwhPDiAXTospump';
-    console.assert(buildAxiomUrl(ca).startsWith('https://axiom.trade/t/'), 'Axiom URL prefix');
-    console.assert(buildAxiomUrl(ca).includes(`/${ca}/@lehunnid`), 'Axiom URL structure includes CA and @lehunnid');
-    console.assert(buildTrojanUrl(ca).endsWith(`-${ca}`), 'Trojan URL ends with -<CA>');
-  })();
 }
