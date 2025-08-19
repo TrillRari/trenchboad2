@@ -318,10 +318,10 @@ export default function App() {
 
   // ------------------ Ads (bandeau) ------------------
   const ads = [
-    { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
-    { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", icon: "helmet" },
-    { id: "ex2",     label: "Get whale alerts with ", brand: "WhaleWatch", href: "#", note: "Example ad — replace link" }
-  ];
+  { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
+  { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", emoji: "🪖" },
+  { id: "photon",  label: "Be the first on any token with ", brand: "Photon", href: "https://photon-sol.tinyastro.io/@cryptohustlers", note: "Catch listings first. Move fast." }
+];
 
   // ------------------ Render ------------------
   return (
@@ -503,7 +503,7 @@ function AdBanner({ ads = [], intervalMs = 8000 }) {
       <div className="max-w-7xl mx-auto px-4 py-3">
         <div className="rounded-xl border border-white/10 bg-[#0b0f14] px-4 py-3 flex items-center justify-between gap-3 hover:border-white/30 transition">
           <div className="flex items-center gap-2">
-            {ad.icon === "helmet" ? <WarHelmetIcon className="w-5 h-5 opacity-80" /> : null}
+            {ad.emoji ? <span className="text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
             <div className="text-sm">
               <span className="text-white/80">{ad.label}</span>
               <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">
@@ -550,13 +550,4 @@ function CopyIcon({ className }){
   );
 }
 
-/* Petit logo casque (SVG inline) */
-function WarHelmetIcon({ className }) {
-  return (
-    <svg viewBox="0 0 24 24" className={className} fill="currentColor" aria-hidden="true">
-      {/* Simple helmet shape */}
-      <path d="M12 3c-4.97 0-9 3.58-9 8v5a2 2 0 0 0 2 2h2v-4a1 1 0 0 1 1-1h3v-2H7a1 1 0 0 1-.9-.56 7 7 0 0 1 13.8 0A1 1 0 0 1 19 11h-4v2h3a1 1 0 0 1 1 1v4h2a2 2 0 0 0 2-2v-5c0-4.42-4.03-8-9-8z"/>
-      <rect x="10.5" y="14" width="3" height="6" rx="0.5" />
-    </svg>
-  );
-}
+
