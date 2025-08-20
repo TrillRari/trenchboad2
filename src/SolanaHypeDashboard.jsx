@@ -3,11 +3,13 @@ import * as d3 from "d3";
 
 /**
  * Trench Board — Dashboard (React + D3)
- * - Bandeau pub (texte centré), rotation ~8s, fade .9s
- * - Bubble map (drift + collisions)
- * - Top par hype (MC sous Chg)
- * - Pop-up: DexScreener, Axiom, Trojan, Copy CA
- * - Mobile: PAS de tooltip hover, clic = pop-up uniquement
+ * ✅ Bandeau pub 1 slot (texte centré), rotation ~8s, fade doux
+ * ✅ Bubble map (collision, dérive légère) + Top par hype (MC sous Chg)
+ * ✅ Pop-up: boutons Copy CA, Photon, Axiom (@lehunnid), Trojan
+ * ✅ Top par hype: clic ouvre Photon (ref @cryptohustlers, format /en/r/@ref/<CA>)
+ * ✅ Auto-refresh: 60s
+ * ✅ Tooltips désactivés sur mobile (seule la pop-up s’ouvre)
+ * ✅ Boutons Reset (Paramètres + Poids du score “hype”)
  */
 
 // URL helpers
@@ -16,6 +18,10 @@ function buildAxiomUrl(ca, username = "lehunnid") {
 }
 function buildTrojanUrl(ca, ref = "reelchasin") {
   return `https://t.me/solana_trojanbot?start=r-${ref}-${ca}`;
+}
+// PHOTON referral (ouvre la chart du token): /en/r/@cryptohustlers/<CA>
+function buildPhotonUrl(ca, refHandle = "cryptohustlers") {
+  return `https://photon-sol.tinyastro.io/en/r/@${refHandle}/${ca}`;
 }
 
 export default function App() {
@@ -38,6 +44,16 @@ export default function App() {
   // ------------------ Refs (D3) ------------------
   const svgRef = useRef(null);
   const zoomRef = useRef(null);
+  const isTouchRef = useRef(false);
+
+  useEffect(() => {
+    // Détecte mobile/tactile pour désactiver le tooltip
+    isTouchRef.current =
+      typeof window !== "undefined" &&
+      ("ontouchstart" in window ||
+        navigator.maxTouchPoints > 0 ||
+        navigator.msMaxTouchPoints > 0);
+  }, []);
 
   // ------------------ Fetch helpers ------------------
   async function getJSON(url, init) {
@@ -64,7 +80,7 @@ export default function App() {
     for (const p of pairs) {
       const base = p.baseToken?.address;
       if (!base) continue;
-      const liq = +((p.liquidity||{}).usd || 0);
+      const liq = +((p.liquidity || {}).usd || 0);
       const prev = map[base]?.liquidity?.usd || 0;
       if (!map[base] || liq > prev) map[base] = p;
     }
@@ -86,7 +102,7 @@ export default function App() {
     setLoading(true); setError("");
     try {
       const boosts = await fetchBoosts();
-      const SAMPLE = Math.max(limit * 5, 120); // élargir l'échantillon avant filtres
+      const SAMPLE = Math.max(limit * 5, 120);
       const addrList = Array.from(new Set(boosts.map(b => b.tokenAddress))).slice(0, SAMPLE);
       const pairsMap = await fetchPairs(addrList);
       const profMap  = await fetchProfiles();
@@ -102,6 +118,12 @@ export default function App() {
   }
 
   useEffect(() => { load(); }, [limit]);
+
+  // Auto-refresh bubble map every 60s (recrée l’intervalle si filtres changent)
+  useEffect(() => {
+    const id = setInterval(() => { load(); }, 60000);
+    return () => clearInterval(id);
+  }, [limit, timeframe, minLiq, weights, query]);
 
   // ------------------ Helpers ------------------
   const pick = (obj, key, fallback = 0) => (obj && obj[key] != null ? (+obj[key] || 0) : fallback);
@@ -187,19 +209,12 @@ export default function App() {
 
     const g = svg.append("g");
 
-    // === Tooltip uniquement si hover disponible (desktop) ===
-    const isHoverCapable =
-      typeof window !== "undefined" &&
-      window.matchMedia &&
-      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
-
-    const tooltip = isHoverCapable
-      ? d3.select("body").append("div")
-          .attr("class", "pointer-events-none fixed z-50 p-3 rounded-xl text-sm bg-[#0f1117]/90 border border-white/10 shadow-xl hidden text-white")
-      : null;
+    // Tooltip (désactivé sur mobile)
+    const tooltip = d3.select("body").append("div")
+      .attr("class", "pointer-events-none fixed z-50 p-3 rounded-xl text-sm bg-[#0f1117]/90 border border-white/10 shadow-xl hidden text-white");
 
     function showTooltip(event, d) {
-      if (!isHoverCapable || !tooltip) return;
+      if (isTouchRef.current) return; // mobile: pas de tooltip, seulement pop-up
       tooltip.html(
         `<div class='font-semibold mb-1'>${d.symbol} · <span class='text-white/70'>${d.name}</span></div>
          <div class='grid grid-cols-2 gap-x-6 gap-y-1 text-white/80'>
@@ -216,7 +231,7 @@ export default function App() {
       .style("top",  `${event.pageY + 16}px`)
       .classed("hidden", false);
     }
-    function hideTooltip(){ if (!tooltip) return; tooltip.classed("hidden", true); } // ne pas remove()
+    function hideTooltip(){ tooltip.classed("hidden", true); } // ne pas remove()
 
     const zoomBehavior = d3.zoom().scaleExtent([0.5, 6]).on("zoom", (ev) => {
       g.attr("transform", ev.transform);
@@ -245,16 +260,13 @@ export default function App() {
     const node = g.selectAll("g.node").data(nodes, d => d.id).join(enter => {
       const wrap = enter.append("g").attr("class", "node cursor-pointer").call(drag(sim));
 
-      const circle = wrap.append("circle")
+      wrap.append("circle")
         .attr("r", d => r(d.hype))
         .attr("fill", d => `url(#grad-${d.id})`)
         .attr("stroke", "#0d1626").attr("stroke-width", 1.5)
-        .on("click", (_, d) => { hideTooltip(); setSelected(d); });
-
-      if (isHoverCapable) {
-        circle.on("mousemove", (e, d) => showTooltip(e, d))
-              .on("mouseout", hideTooltip);
-      }
+        .on("mousemove", (e, d) => showTooltip(e, d))
+        .on("mouseout", hideTooltip)
+        .on("click", (_, d) => setSelected(d));
 
       wrap.each(function(d){
         const gid = `grad-${d.id}`;
@@ -265,7 +277,7 @@ export default function App() {
         }
       });
 
-      // Pastille logo
+      // Pastille logo (si image)
       wrap.each(function(d){
         if(!d.icon) return;
         const R = r(d.hype);
@@ -348,6 +360,17 @@ export default function App() {
     } catch {}
   }
 
+  // Reset helpers
+  function resetParams(){
+    setTimeframe("h1");
+    setMinLiq(10000);
+    setLimit(40);
+    setQuery("");
+  }
+  function resetWeights(){
+    setWeights({ price: 0.5, volume: 0.3, txns: 0.1, boost: 0.1 });
+  }
+
   // ------------------ Ads (bandeau, 1 slot, centré) ------------------
   const ads = [
     { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
@@ -376,7 +399,10 @@ export default function App() {
         {/* Panneau de contrôle */}
         <section className="order-2 lg:order-1 lg:col-span-4 space-y-4">
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="text-sm text-white/70 mb-2">Paramètres</div>
+            <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+              <span>Paramètres</span>
+              <button onClick={resetParams} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
+            </div>
             <div className="grid grid-cols-2 gap-4">
               <label className="text-sm">Timeframe
                 <select className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" value={timeframe} onChange={e=>setTimeframe(e.target.value)}>
@@ -399,7 +425,10 @@ export default function App() {
           </div>
 
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="text-sm text-white/70 mb-2">Poids du score "hype"</div>
+            <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+              <span>Poids du score "hype"</span>
+              <button onClick={resetWeights} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
+            </div>
             <Slider label="Prix"    value={weights.price} onChange={v=>setWeights(s=>({...s, price:v}))} />
             <Slider label="Volume"  value={weights.volume} onChange={v=>setWeights(s=>({...s, volume:v}))} />
             <Slider label="Transactions" value={weights.txns} onChange={v=>setWeights(s=>({...s, txns:v}))} />
@@ -435,8 +464,8 @@ export default function App() {
                 key={n.id}
                 role="link"
                 tabIndex={0}
-                onClick={() => window.open(buildAxiomUrl(n.id), "_blank", "noopener,noreferrer")}
-                onKeyDown={(e) => { if (e.key === "Enter") window.open(buildAxiomUrl(n.id), "_blank", "noopener,noreferrer"); }}
+                onClick={() => window.open(buildPhotonUrl(n.id, "cryptohustlers"), "_blank", "noopener,noreferrer")}
+                onKeyDown={(e) => { if (e.key === "Enter") window.open(buildPhotonUrl(n.id, "cryptohustlers"), "_blank", "noopener,noreferrer"); }}
                 className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14] cursor-pointer"
               >
                 <div className="flex items-center gap-2">
@@ -493,7 +522,7 @@ export default function App() {
               </div>
               <div className="font-bold">{selected.symbol}</div>
               <div className="text-xs text-white/60 truncate">{selected.name}</div>
-              <button className="ml-auto p-1 rounded hover:bg:white/10 hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
+              <button className="ml-auto p-1 rounded hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -505,11 +534,11 @@ export default function App() {
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Chg {timeframe}<br/><span className="font-semibold" style={{color: color(selected.priceChg)}}>{(isFinite(selected.priceChg)?selected.priceChg.toFixed(2):0)}%</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Liquidité<br/><span className="font-semibold">${d3.format(",.0f")(selected.liquidity)}</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Vol {timeframe}<br/><span className="font-semibold">${d3.format(",.0f")(selected.vol)}</span></div>
-              <div className="rounded-xl border border:white/10 border-white/10 bg-[#0b0f14] p-3">Txns 1h<br/><span className="font-semibold">{selected.txnH1}</span></div>
+              <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Txns 1h<br/><span className="font-semibold">{selected.txnH1}</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Prix<br/><span className="font-semibold">${(selected.priceUsd ?? 0).toFixed(6)}</span></div>
             </div>
 
-            {/* BOUTONS: Copy CA, DexScreener, Axiom, Trojan */}
+            {/* BOUTONS: Copy CA, PHOTON, Axiom, Trojan */}
             <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs">
               <a href={`https://solscan.io/token/${selected.id}`} target="_blank" rel="noreferrer" className="text-blue-300 hover:underline">{short(selected.id)}</a>
               <div className="flex items-center gap-2 flex-wrap">
@@ -519,13 +548,14 @@ export default function App() {
                 >
                   <CopyIcon className="w-3 h-3"/> {copiedId===selected.id ? "Copié" : "Copy CA"}
                 </button>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={selected.url} target="_blank" rel="noreferrer">
-                  DexScreener
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                   href={buildPhotonUrl(selected.id, "cryptohustlers")} target="_blank" rel="noreferrer">
+                  Photon
                 </a>
                 <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
                   Axiom
                 </a>
-                <a className="inline-flex items:center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
                   Trojan
                 </a>
               </div>
@@ -534,8 +564,8 @@ export default function App() {
         </div>
       )}
 
-      <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text:white/40 text-white/40">
-     Built on Solana | All rights reserved © 2025
+      <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text-white/40">
+        Données: DexScreener (API publique). Ceci n'est pas un conseil financier.
       </footer>
     </div>
   );
@@ -556,7 +586,7 @@ function AdBanner({ ads = [], intervalMs = 8000, selectedCA }) {
   return (
     <section className="bg-[#0f1117]/60 border-b border-white/10">
       {/* Fade simple via keyframes */}
-      <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}} .ad-fade{animation:adFade .9s ease-in-out}`}</style>
+      <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}} .ad-fade{animation:adFade 1.2s ease-in-out}`}</style>
       <div className="max-w-7xl mx-auto px-4">
         <div key={ad.id} className="ad-fade">
           <div className="h-10 md:h-12 flex items-center justify-center text-center">
@@ -614,5 +644,25 @@ function CopyIcon({ className }){
       <rect x="9" y="9" width="13" height="13" rx="2"></rect>
       <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
     </svg>
+  );
+}
+
+/* ---------- Mini tests (console) ---------- */
+if (typeof window !== "undefined") {
+  // buildPhotonUrl
+  console.assert(
+    buildPhotonUrl("5T5h4fW1hqBeqwhsPxZwm95Sgq36PasukMrxgE6Jbonk") ===
+    "https://photon-sol.tinyastro.io/en/r/@cryptohustlers/5T5h4fW1hqBeqwhsPxZwm95Sgq36PasukMrxgE6Jbonk",
+    "buildPhotonUrl doit retourner l'URL attendue"
+  );
+  // buildAxiomUrl
+  console.assert(
+    buildAxiomUrl("So11111111111111111111111111111111111111112").includes("@lehunnid"),
+    "buildAxiomUrl doit utiliser @lehunnid par défaut"
+  );
+  // buildTrojanUrl
+  console.assert(
+    buildTrojanUrl("So11111111111111111111111111111111111111112").startsWith("https://t.me/solana_trojanbot?start=r-"),
+    "buildTrojanUrl doit commencer par le préfixe Telegram"
   );
 }
