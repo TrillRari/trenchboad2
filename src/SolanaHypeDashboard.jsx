@@ -548,6 +548,11 @@ export default function App() {
                 >
                   <CopyIcon className="w-3 h-3"/> {copiedId===selected.id ? "Copié" : "Copy CA"}
                 </button>
+
+                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                    href={selected.url || `https://dexscreener.com/solana/${selected.id}`} target="_blank" rel="noreferrer" >
+                  Dexscreener
+                </a>
                 <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
                    href={buildPhotonUrl(selected.id, "cryptohustlers")} target="_blank" rel="noreferrer">
                   Photon
