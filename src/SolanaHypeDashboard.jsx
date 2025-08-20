@@ -20,7 +20,7 @@ function buildTrojanUrl(ca, ref = "reelchasin") {
 export default function App() {
   // ------------------ UI State ------------------
   const [timeframe, setTimeframe] = useState("h1"); // m5|h1|h6|h24
-  const [minLiq, setMinLiq] = useState(20000);
+  const [minLiq, setMinLiq] = useState(10000);
   const [limit, setLimit] = useState(40);
   const [weights, setWeights] = useState({ price: 0.5, volume: 0.3, txns: 0.1, boost: 0.1 });
   const [query, setQuery] = useState("");
@@ -125,6 +125,7 @@ export default function App() {
       const txn   = (p.txns?.[timeframe]?.buys || 0) + (p.txns?.[timeframe]?.sells || 0);
       const txnH1 = (p.txns?.h1?.buys || 0) + (p.txns?.h1?.sells || 0); // pop-up
       const priceChg = pick(p.priceChange, timeframe, 0);
+      const priceChgH1 = pick(p.priceChange, "h1", 0);
       const boost = boostMap.get(addr) || 0;
 
       const nPrice = d3.scaleLinear().domain([-50, 50]).range([0, 1]).clamp(true)(priceChg);
@@ -141,7 +142,7 @@ export default function App() {
       const priceUsd  = +(p.priceUsd || 0);
       const mc        = +(p.fdv ?? p.marketCap ?? 0);
 
-      return { id: addr, name, symbol, url, icon, hype, priceChg, vol, txn, txnH1, boost, liquidity, priceUsd, mc };
+      return { id: addr, name, symbol, url, icon, hype, priceChg, priceChgH1, vol, txn, txnH1, boost, liquidity, priceUsd, mc };
     });
 
     const q = query.trim().toLowerCase();
@@ -193,7 +194,7 @@ export default function App() {
         `<div class='font-semibold mb-1'>${d.symbol} · <span class='text-white/70'>${d.name}</span></div>
          <div class='grid grid-cols-2 gap-x-6 gap-y-1 text-white/80'>
            <div>MC</div><div class='text-right'>${d.mc ? '$' + d3.format(",.0f")(d.mc) : '—'}</div>
-           <div>Chg ${timeframe}</div><div class='text-right' style='color:${color(d.priceChg)}'>${(isFinite(d.priceChg)?d.priceChg.toFixed(2):0)}%</div>
+           <div>Chg 1h</div><div class='text-right' style='color:${color(d.priceChgH1)}'>${(isFinite(d.priceChgH1)?d.priceChgH1.toFixed(2):0)}%</div>
            <div>Prix</div><div class='text-right'>$${d.priceUsd.toFixed(6)}</div>
            <div>Vol ${timeframe}</div><div class='text-right'>$${d3.format(",.0f")(d.vol)}</div>
            <div>Txns ${timeframe}</div><div class='text-right'>${d.txn}</div>
@@ -360,7 +361,7 @@ export default function App() {
 
       <main className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Panneau de contrôle */}
-        <section className="lg:col-span-4 space-y-4">
+        <section className="order-2 lg:order-1 lg:col-span-4 space-y-4">
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
             <div className="text-sm text-white/70 mb-2">Paramètres</div>
             <div className="grid grid-cols-2 gap-4">
@@ -397,7 +398,7 @@ export default function App() {
         </section>
 
         {/* Bubble chart */}
-        <section className="lg:col-span-8 p-2 rounded-2xl border border-white/10 bg-[#0f1117]/60">
+        <section className="order-1 lg:order-2 lg:col-span-8 p-2 rounded-2xl border border-white/10 bg-[#0f1117]/60">
           <div className="relative">
             <svg ref={svgRef} width={dims.w} height={dims.h} />
             <div className="absolute right-3 top-3 flex flex-col gap-2">
@@ -413,7 +414,7 @@ export default function App() {
         </section>
 
         {/* Top par hype */}
-        <section className="lg:col-span-12 p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
+        <section className="order-3 lg:order-3 lg:col-span-12 p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
           <div className="text-sm text-white/70 mb-2">Top par hype</div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {nodes.slice(0, 24).map(n => (
@@ -521,7 +522,7 @@ export default function App() {
       )}
 
       <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text-white/40">
-       Built on Solana | All rights reserved © 2025
+        Données: DexScreener (API publique). Ceci n'est pas un conseil financier.
       </footer>
     </div>
   );
