@@ -2,11 +2,12 @@ import React, { useEffect, useMemo, useRef, useState } from "react";
 import * as d3 from "d3";
 
 /**
- * Solana Trench Board — Dashboard (React + D3)
- * - Bandeau pub 1 slot (texte centré), rotation ~8s, fade simple
- * - Bubble map + Top par hype (MC sous Chg)
- * - Pop-up: boutons Axiom & Trojan à côté de DexScreener et Copy CA
- * - Cartes Top par hype: clic ouvre Axiom (ref @lehunnid), plus d’ancres imbriquées
+ * Trench Board — Dashboard (React + D3)
+ * - Bandeau pub (texte centré), rotation ~8s, fade .9s
+ * - Bubble map (drift + collisions)
+ * - Top par hype (MC sous Chg)
+ * - Pop-up: DexScreener, Axiom, Trojan, Copy CA
+ * - Mobile: PAS de tooltip hover, clic = pop-up uniquement
  */
 
 // URL helpers
@@ -85,7 +86,7 @@ export default function App() {
     setLoading(true); setError("");
     try {
       const boosts = await fetchBoosts();
-      const SAMPLE = Math.max(limit * 5, 120);
+      const SAMPLE = Math.max(limit * 5, 120); // élargir l'échantillon avant filtres
       const addrList = Array.from(new Set(boosts.map(b => b.tokenAddress))).slice(0, SAMPLE);
       const pairsMap = await fetchPairs(addrList);
       const profMap  = await fetchProfiles();
@@ -186,10 +187,19 @@ export default function App() {
 
     const g = svg.append("g");
 
-    const tooltip = d3.select("body").append("div")
-      .attr("class", "pointer-events-none fixed z-50 p-3 rounded-xl text-sm bg-[#0f1117]/90 border border-white/10 shadow-xl hidden text-white");
+    // === Tooltip uniquement si hover disponible (desktop) ===
+    const isHoverCapable =
+      typeof window !== "undefined" &&
+      window.matchMedia &&
+      window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+    const tooltip = isHoverCapable
+      ? d3.select("body").append("div")
+          .attr("class", "pointer-events-none fixed z-50 p-3 rounded-xl text-sm bg-[#0f1117]/90 border border-white/10 shadow-xl hidden text-white")
+      : null;
 
     function showTooltip(event, d) {
+      if (!isHoverCapable || !tooltip) return;
       tooltip.html(
         `<div class='font-semibold mb-1'>${d.symbol} · <span class='text-white/70'>${d.name}</span></div>
          <div class='grid grid-cols-2 gap-x-6 gap-y-1 text-white/80'>
@@ -206,7 +216,7 @@ export default function App() {
       .style("top",  `${event.pageY + 16}px`)
       .classed("hidden", false);
     }
-    function hideTooltip(){ tooltip.classed("hidden", true); } // ne pas remove()
+    function hideTooltip(){ if (!tooltip) return; tooltip.classed("hidden", true); } // ne pas remove()
 
     const zoomBehavior = d3.zoom().scaleExtent([0.5, 6]).on("zoom", (ev) => {
       g.attr("transform", ev.transform);
@@ -235,13 +245,16 @@ export default function App() {
     const node = g.selectAll("g.node").data(nodes, d => d.id).join(enter => {
       const wrap = enter.append("g").attr("class", "node cursor-pointer").call(drag(sim));
 
-      wrap.append("circle")
+      const circle = wrap.append("circle")
         .attr("r", d => r(d.hype))
         .attr("fill", d => `url(#grad-${d.id})`)
         .attr("stroke", "#0d1626").attr("stroke-width", 1.5)
-        .on("mousemove", (e, d) => showTooltip(e, d))
-        .on("mouseout", hideTooltip)
-        .on("click", (_, d) => setSelected(d));
+        .on("click", (_, d) => { hideTooltip(); setSelected(d); });
+
+      if (isHoverCapable) {
+        circle.on("mousemove", (e, d) => showTooltip(e, d))
+              .on("mouseout", hideTooltip);
+      }
 
       wrap.each(function(d){
         const gid = `grad-${d.id}`;
@@ -480,7 +493,7 @@ export default function App() {
               </div>
               <div className="font-bold">{selected.symbol}</div>
               <div className="text-xs text-white/60 truncate">{selected.name}</div>
-              <button className="ml-auto p-1 rounded hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
+              <button className="ml-auto p-1 rounded hover:bg:white/10 hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
@@ -492,7 +505,7 @@ export default function App() {
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Chg {timeframe}<br/><span className="font-semibold" style={{color: color(selected.priceChg)}}>{(isFinite(selected.priceChg)?selected.priceChg.toFixed(2):0)}%</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Liquidité<br/><span className="font-semibold">${d3.format(",.0f")(selected.liquidity)}</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Vol {timeframe}<br/><span className="font-semibold">${d3.format(",.0f")(selected.vol)}</span></div>
-              <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Txns 1h<br/><span className="font-semibold">{selected.txnH1}</span></div>
+              <div className="rounded-xl border border:white/10 border-white/10 bg-[#0b0f14] p-3">Txns 1h<br/><span className="font-semibold">{selected.txnH1}</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Prix<br/><span className="font-semibold">${(selected.priceUsd ?? 0).toFixed(6)}</span></div>
             </div>
 
@@ -512,7 +525,7 @@ export default function App() {
                 <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
                   Axiom
                 </a>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
+                <a className="inline-flex items:center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
                   Trojan
                 </a>
               </div>
@@ -521,7 +534,7 @@ export default function App() {
         </div>
       )}
 
-      <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text-white/40">
+      <footer className="max-w-7xl mx-auto px-4 py-8 text-center text-xs text:white/40 text-white/40">
         Données: DexScreener (API publique). Ceci n'est pas un conseil financier.
       </footer>
     </div>
@@ -603,4 +616,3 @@ function CopyIcon({ className }){
     </svg>
   );
 }
- 
