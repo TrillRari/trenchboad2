@@ -383,15 +383,21 @@ export default function App() {
   return (
     <div className="min-h-screen w-full bg-[#090a0f] text-white">
       <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-start">
-          <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-            <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Trench Board</span>
-          </h1>
-          <button onClick={load} className="rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20">
-            {loading ? "Chargement…" : "Rafraîchir"}
-          </button>
-        </div>
-      </header>
+  <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
+    <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
+      <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">
+        Trench Board
+      </span>
+    </h1>
+    <button
+      onClick={load}
+      className="ml-auto md:ml-4 rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20"
+    >
+      {loading ? "Chargement…" : "Rafraîchir"}
+    </button>
+  </div>
+</header>
+
 
       <AdBanner ads={ads} intervalMs={8000} selectedCA={selected?.id} />
 
