@@ -408,10 +408,16 @@ export default function App() {
         {/* Panneau de contrôle */}
         <section className="order-2 lg:order-1 lg:col-span-4 space-y-4">
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="flex items-center justify-start text-sm text-white/70 mb-2">
-              <span>Paramètres</span>
-              <button onClick={resetParams} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
-            </div>
+            <div className="flex items-center text-sm text-white/70 mb-2">
+  <span>Paramètres</span>
+  <button
+    onClick={resetParams}
+    className="ml-auto px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs"
+  >
+    Reset
+  </button>
+</div>
+
             <div className="grid grid-cols-2 gap-4">
               <label className="text-sm">Timeframe
                 <select className="w-full mt-1 bg-[#0b0f14] border border-white/10 rounded-lg p-2" value={timeframe} onChange={e=>setTimeframe(e.target.value)}>
@@ -434,10 +440,16 @@ export default function App() {
           </div>
 
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="flex items-center justify-start text-sm text-white/70 mb-2">
-              <span>Poids du score "hype"</span>
-              <button onClick={resetWeights} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
-            </div>
+            <div className="flex items-center text-sm text-white/70 mb-2">
+  <span>Poids du score "hype"</span>
+  <button
+    onClick={resetWeights}
+    className="ml-auto px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs"
+  >
+    Reset
+  </button>
+</div>
+
             <Slider label="Prix"    value={weights.price} onChange={v=>setWeights(s=>({...s, price:v}))} />
             <Slider label="Volume"  value={weights.volume} onChange={v=>setWeights(s=>({...s, volume:v}))} />
             <Slider label="Transactions" value={weights.txns} onChange={v=>setWeights(s=>({...s, txns:v}))} />
