@@ -3,13 +3,13 @@ import * as d3 from "d3";
 
 /**
  * Trench Board — Dashboard (React + D3)
- * ✅ Bandeau pub 1 slot (texte centré), rotation ~8s, fade doux
- * ✅ Bubble map (collision, dérive légère) + Top par hype (MC sous Chg)
- * ✅ Pop-up: boutons Copy CA, Photon, Axiom (@lehunnid), Trojan
- * ✅ Top par hype: clic ouvre Photon (ref @cryptohustlers, format /en/r/@ref/<CA>)
- * ✅ Auto-refresh: 60s
- * ✅ Tooltips désactivés sur mobile (seule la pop-up s’ouvre)
- * ✅ Boutons Reset (Paramètres + Poids du score “hype”)
+ * - Bandeau pub 1 slot (texte centré), rotation ~8s, fade doux
+ * - Bubble map (collision, dérive légère) + Top par hype (MC sous Chg)
+ * - Pop-up: CA + Copy CA en bas à gauche, et boutons Dexscreener/Photon/Axiom/Trojan à droite (une seule ligne)
+ * - Top par hype: clic ouvre Photon (ref @cryptohustlers, format /en/r/@ref/<CA>)
+ * - Auto-refresh: 60s
+ * - Tooltips désactivés sur mobile (seule la pop-up s'ouvre)
+ * - Boutons Reset (Paramètres + Poids du score "hype")
  */
 
 // URL helpers
@@ -28,7 +28,7 @@ export default function App() {
   // ------------------ UI State ------------------
   const [timeframe, setTimeframe] = useState("h1"); // m5|h1|h6|h24
   const [minLiq, setMinLiq] = useState(10000);
-  const [limit, setLimit] = useState(40);
+  const [limit, setLimit] = useState(20); // défaut 20
   const [weights, setWeights] = useState({ price: 0.5, volume: 0.3, txns: 0.1, boost: 0.1 });
   const [query, setQuery] = useState("");
   const [loading, setLoading] = useState(false);
@@ -119,7 +119,7 @@ export default function App() {
 
   useEffect(() => { load(); }, [limit]);
 
-  // Auto-refresh bubble map every 60s (recrée l’intervalle si filtres changent)
+  // Auto-refresh bubble map every 60s (recrée l'intervalle si filtres changent)
   useEffect(() => {
     const id = setInterval(() => { load(); }, 60000);
     return () => clearInterval(id);
@@ -231,7 +231,7 @@ export default function App() {
       .style("top",  `${event.pageY + 16}px`)
       .classed("hidden", false);
     }
-    function hideTooltip(){ tooltip.classed("hidden", true); } // ne pas remove()
+    function hideTooltip(){ tooltip.classed("hidden", true); }
 
     const zoomBehavior = d3.zoom().scaleExtent([0.5, 6]).on("zoom", (ev) => {
       g.attr("transform", ev.transform);
@@ -364,7 +364,7 @@ export default function App() {
   function resetParams(){
     setTimeframe("h1");
     setMinLiq(10000);
-    setLimit(40);
+    setLimit(20);
     setQuery("");
   }
   function resetWeights(){
@@ -383,7 +383,7 @@ export default function App() {
   return (
     <div className="min-h-screen w-full bg-[#090a0f] text-white">
       <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-between">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center justify-start">
           <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
             <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">Trench Board</span>
           </h1>
@@ -399,7 +399,7 @@ export default function App() {
         {/* Panneau de contrôle */}
         <section className="order-2 lg:order-1 lg:col-span-4 space-y-4">
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+            <div className="flex items-center justify-start text-sm text-white/70 mb-2">
               <span>Paramètres</span>
               <button onClick={resetParams} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
             </div>
@@ -425,7 +425,7 @@ export default function App() {
           </div>
 
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-            <div className="flex items-center justify-between text-sm text-white/70 mb-2">
+            <div className="flex items-center justify-start text-sm text-white/70 mb-2">
               <span>Poids du score "hype"</span>
               <button onClick={resetWeights} className="px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs">Reset</button>
             </div>
@@ -433,7 +433,7 @@ export default function App() {
             <Slider label="Volume"  value={weights.volume} onChange={v=>setWeights(s=>({...s, volume:v}))} />
             <Slider label="Transactions" value={weights.txns} onChange={v=>setWeights(s=>({...s, txns:v}))} />
             <Slider label="Boosts"  value={weights.boost} onChange={v=>setWeights(s=>({...s, boost:v}))} />
-            <div className="text-xs text-white/60 mt-2">Astuce : “Boost” reflète la mise en avant DexScreener (buzz court terme).</div>
+            <div className="text-xs text-white/60 mt-2">Astuce : "Boost" reflète la mise en avant DexScreener (buzz court terme).</div>
           </div>
 
           {error && <div className="p-3 rounded-xl bg-red-500/10 border border-red-500/30 text-sm text-red-200">{error}</div>}
@@ -449,7 +449,7 @@ export default function App() {
               <button onClick={resetZoom} className="w-9 h-9 text-xs rounded-lg bg-[#0b0f14]/80 border border-white/10 hover:border-white/30">100%</button>
             </div>
           </div>
-          <div className="flex items-center justify-between px-2 pb-2 text-xs text-white/60">
+          <div className="flex items-center justify-start px-2 pb-2 text-xs text-white/60">
             <div>{nodes.length} tokens · timeframe {timeframe}</div>
             <div>Zoom: molette/pinch · Drag: déplacer · Clic: pop-up d'infos</div>
           </div>
@@ -486,7 +486,7 @@ export default function App() {
                   <div>LiQ</div><div className="text-right">${d3.format(",.0f")(n.liquidity)}</div>
                   <div>Boost</div><div className="text-right">{n.boost || 0}</div>
                 </div>
-                <div className="mt-2 flex items-center justify-between text-xs">
+                <div className="mt-2 flex items-center justify-start text-xs">
                   <button
                     className="text-blue-300 hover:underline"
                     onClick={(e)=>{ e.stopPropagation(); window.open(`https://solscan.io/token/${n.id}`, "_blank", "noopener,noreferrer"); }}
@@ -511,8 +511,9 @@ export default function App() {
       {/* Pop-up d'infos */}
       {selected && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" onClick={()=>setSelected(null)}>
-          <div className="w-full max-w-md rounded-2xl border border-white/10 bg-[#0f1117]" onClick={e=>e.stopPropagation()}>
-            <div className="flex items-center gap-3 p-4 border-b border-white/10">
+          <div className="w-fit max-w-[95vw] rounded-2xl border border-white/10 bg-[#0f1117]" onClick={e=>e.stopPropagation()}>
+            {/* HEADER: avatar + (symbol/name) + close */}
+            <div className="flex items-start gap-3 p-4 border-b border-white/10">
               <div className="w-8 h-8 rounded-full overflow-hidden border border-white/10">
                 {selected.icon ? (
                   <img src={selected.icon} alt="" className="w-full h-full object-cover"/>
@@ -520,15 +521,20 @@ export default function App() {
                   <div className="w-full h-full bg-gradient-to-br from-[#14F195] to-[#9945FF]" />
                 )}
               </div>
-              <div className="font-bold">{selected.symbol}</div>
-              <div className="text-xs text-white/60 truncate">{selected.name}</div>
-              <button className="ml-auto p-1 rounded hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="font-bold text-base">{selected.symbol}</div>
+                  <div className="text-xs text-white/60 truncate">{selected.name}</div>
+                </div>
+              </div>
+              <button className="ml-2 p-1 rounded hover:bg-white/10" onClick={()=>setSelected(null)} aria-label="Fermer">
                 <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
                 </svg>
               </button>
             </div>
 
+            {/* METRICS */}
             <div className="p-4 grid grid-cols-2 gap-3 text-sm">
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">MC<br/><span className="font-semibold">{selected.mc ? `$${d3.format(",.0f")(selected.mc)}` : "—"}</span></div>
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Chg {timeframe}<br/><span className="font-semibold" style={{color: color(selected.priceChg)}}>{(isFinite(selected.priceChg)?selected.priceChg.toFixed(2):0)}%</span></div>
@@ -538,31 +544,38 @@ export default function App() {
               <div className="rounded-xl border border-white/10 bg-[#0b0f14] p-3">Prix<br/><span className="font-semibold">${(selected.priceUsd ?? 0).toFixed(6)}</span></div>
             </div>
 
-            {/* BOUTONS: Copy CA, PHOTON, Axiom, Trojan */}
-            <div className="p-4 border-t border-white/10 flex items-center justify-between text-xs">
-              <a href={`https://solscan.io/token/${selected.id}`} target="_blank" rel="noreferrer" className="text-blue-300 hover:underline">{short(selected.id)}</a>
-              <div className="flex items-center gap-2 flex-wrap">
-                <button
-                  className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
-                  onClick={()=>handleCopy(selected.id)}
-                >
-                  <CopyIcon className="w-3 h-3"/> {copiedId===selected.id ? "Copié" : "Copy CA"}
-                </button>
-
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
-                    href={selected.url || `https://dexscreener.com/solana/${selected.id}`} target="_blank" rel="noreferrer" >
-                  Dexscreener
-                </a>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
-                   href={buildPhotonUrl(selected.id, "cryptohustlers")} target="_blank" rel="noreferrer">
-                  Photon
-                </a>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
-                  Axiom
-                </a>
-                <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
-                  Trojan
-                </a>
+            {/* FOOTER: CA + Copy (gauche) et liens référal (droite) sur une seule ligne */}
+            <div className="p-4 border-t border-white/10 text-xs">
+              <div className="flex items-center justify-start gap-1.5 whitespace-nowrap overflow-x-auto flex-nowrap">
+                {/* GAUCHE: CA + Copy */}
+                <div className="flex items-center gap-1.5">
+                  <a href={`https://solscan.io/token/${selected.id}`} target="_blank" rel="noreferrer" className="text-blue-300 hover:underline">
+                    {short(selected.id)}
+                  </a>
+                  <button
+                    className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                    onClick={()=>handleCopy(selected.id)}
+                  >
+                    <CopyIcon className="w-3 h-3" /> {copiedId===selected.id ? "Copié" : "Copy CA"}
+                  </button>
+                </div>
+                {/* DROITE: Référals */}
+                <div className="flex items-center gap-1.5">
+                  <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                     href={selected.url || `https://dexscreener.com/solana/${selected.id}`} target="_blank" rel="noreferrer">
+                    Dexscreener
+                  </a>
+                  <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
+                     href={buildPhotonUrl(selected.id, "cryptohustlers")} target="_blank" rel="noreferrer">
+                    Photon
+                  </a>
+                  <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
+                    Axiom
+                  </a>
+                  <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildTrojanUrl(selected.id)} target="_blank" rel="noreferrer">
+                    Trojan
+                  </a>
+                </div>
               </div>
             </div>
           </div>
