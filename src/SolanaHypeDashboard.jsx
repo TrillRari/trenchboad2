@@ -373,10 +373,10 @@ export default function App() {
 
   // ------------------ Ads (bandeau, 1 slot, centré) ------------------
   const ads = [
-    { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@lehunnid", note: "Low fees. Fast fills." },
+    { id: "axiom",   label: "Trade faster with ", brand: "Axiom", href: "https://axiom.trade/@trenchapp", note: "Low fees. Fast fills." },
     { id: "trenchor",label: "Copy-trade the best traders with ", brand: "Trenchor Bot", href: "https://t.me/Trenchor_bot?start=5691367640", note: "Auto copy-trade on Telegram", emoji: "🪖" },
-    { id: "photon",  label: "Be the first on any token with ", brand: "Photon", href: "https://photon-sol.tinyastro.io/@cryptohustlers", note: "Catch listings first. Move fast." },
-    { id: "ad_contact", label: "Your link here? ", brand: "Contact us", href: "https://t.me/reelchasin" }
+    { id: "photon",  label: "Be the first on any token with ", brand: "Photon", href: "https://photon-sol.tinyastro.io/@trenchboard", note: "Catch listings first. Move fast." },
+    { id: "ad_contact", label: "Your link here? ", brand: "Contact us", href: "https://t.me/trenchor_support" }
   ];
 
   // ------------------ Render ------------------
