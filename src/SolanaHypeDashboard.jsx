@@ -13,14 +13,14 @@ import * as d3 from "d3";
  */
 
 // URL helpers
-function buildAxiomUrl(ca, username = "lehunnid") {
+function buildAxiomUrl(ca, username = "trenchapp") {
   return `https://axiom.trade/t/${ca}/@${username}`;
 }
-function buildTrojanUrl(ca, ref = "reelchasin") {
+function buildTrojanUrl(ca, ref = "trenchor_suppor") {
   return `https://t.me/solana_trojanbot?start=r-${ref}-${ca}`;
 }
 // PHOTON referral (ouvre la chart du token): /en/r/@cryptohustlers/<CA>
-function buildPhotonUrl(ca, refHandle = "cryptohustlers") {
+function buildPhotonUrl(ca, refHandle = "trenchboard") {
   return `https://photon-sol.tinyastro.io/en/r/@${refHandle}/${ca}`;
 }
 
