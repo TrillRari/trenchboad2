@@ -6,7 +6,7 @@ import * as d3 from "d3";
  * - Bandeau pub 1 slot (texte centré), rotation ~8s, fade doux
  * - Bubble map (collision, dérive légère) + Top par hype (MC sous Chg)
  * - Pop-up: CA + Copy CA en bas à gauche, et boutons Dexscreener/Photon/Axiom/Trojan à droite (une seule ligne)
- * - Top par hype: clic ouvre Photon (ref @cryptohustlers, format /en/r/@ref/<CA>)
+ * - Top par hype: clic ouvre Photon (ref @trenchboard, format /en/r/@ref/<CA>)
  * - Auto-refresh: 60s
  * - Tooltips désactivés sur mobile (seule la pop-up s'ouvre)
  * - Boutons Reset (Paramètres + Poids du score "hype")
@@ -19,7 +19,7 @@ function buildAxiomUrl(ca, username = "trenchapp") {
 function buildTrojanUrl(ca, ref = "trenchor_suppor") {
   return `https://t.me/solana_trojanbot?start=r-${ref}-${ca}`;
 }
-// PHOTON referral (ouvre la chart du token): /en/r/@cryptohustlers/<CA>
+// PHOTON referral (ouvre la chart du token): /en/r/@trenchboard/<CA>
 function buildPhotonUrl(ca, refHandle = "trenchboard") {
   return `https://photon-sol.tinyastro.io/en/r/@${refHandle}/${ca}`;
 }
@@ -485,8 +485,8 @@ export default function App() {
                 key={n.id}
                 role="link"
                 tabIndex={0}
-                onClick={() => window.open(buildPhotonUrl(n.id, "cryptohustlers"), "_blank", "noopener,noreferrer")}
-                onKeyDown={(e) => { if (e.key === "Enter") window.open(buildPhotonUrl(n.id, "cryptohustlers"), "_blank", "noopener,noreferrer"); }}
+                onClick={() => window.open(buildPhotonUrl(n.id, "trenchboard"), "_blank", "noopener,noreferrer")}
+                onKeyDown={(e) => { if (e.key === "Enter") window.open(buildPhotonUrl(n.id, "trenchboard"), "_blank", "noopener,noreferrer"); }}
                 className="group rounded-xl border border-white/10 p-3 hover:border-white/30 bg-[#0b0f14] cursor-pointer"
               >
                 <div className="flex items-center gap-2">
@@ -587,7 +587,7 @@ export default function App() {
                     Dexscreener
                   </a>
                   <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30"
-                     href={buildPhotonUrl(selected.id, "cryptohustlers")} target="_blank" rel="noreferrer">
+                     href={buildPhotonUrl(selected.id, "trenchboard")} target="_blank" rel="noreferrer">
                     Photon
                   </a>
                   <a className="inline-flex items-center gap-1 px-2 py-1 rounded-md border border-white/10 hover:border-white/30" href={buildAxiomUrl(selected.id)} target="_blank" rel="noreferrer">
@@ -691,7 +691,7 @@ if (typeof window !== "undefined") {
   // buildPhotonUrl
   console.assert(
     buildPhotonUrl("5T5h4fW1hqBeqwhsPxZwm95Sgq36PasukMrxgE6Jbonk") ===
-    "https://photon-sol.tinyastro.io/en/r/@cryptohustlers/5T5h4fW1hqBeqwhsPxZwm95Sgq36PasukMrxgE6Jbonk",
+    "https://photon-sol.tinyastro.io/en/r/@trenchboard/5T5h4fW1hqBeqwhsPxZwm95Sgq36PasukMrxgE6Jbonk",
     "buildPhotonUrl doit retourner l'URL attendue"
   );
   // buildAxiomUrl
