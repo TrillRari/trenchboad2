@@ -478,7 +478,7 @@ export default function App() {
 
         {/* Top par hype */}
         <section className="order-3 lg:order-3 lg:col-span-12 p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
-          <div className="text-sm text-white/70 mb-2">Top par hype</div>
+          <div className="text-sm text-white/70 mb-2">Top Ones </div>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {nodes.slice(0, 24).map(n => (
               <div
