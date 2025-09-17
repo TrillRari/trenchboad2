@@ -396,7 +396,7 @@ export default function App() {
       onClick={load}
       className="ml-auto rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20"
     >
-      {loading ? "Chargement…" : "Rafraîchir"}
+      {loading ? "Chargement…" : "Refresh"}
     </button>
   </div>
 </header>
@@ -409,7 +409,7 @@ export default function App() {
         <section className="order-2 lg:order-1 lg:col-span-4 space-y-4">
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
             <div className="flex items-center text-sm text-white/70 mb-2">
-  <span>Paramètres</span>
+  <span> Settings </span>
   <button
     onClick={resetParams}
     className="ml-auto px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs"
@@ -441,7 +441,7 @@ export default function App() {
 
           <div className="p-4 rounded-2xl border border-white/10 bg-[#0f1117]/60">
             <div className="flex items-center text-sm text-white/70 mb-2">
-  <span>Poids du score "hype"</span>
+  <span>Hype score </span>
   <button
     onClick={resetWeights}
     className="ml-auto px-2 py-1 rounded-md border border-white/10 hover:border-white/30 text-xs"
