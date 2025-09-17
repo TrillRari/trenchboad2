@@ -396,7 +396,7 @@ export default function App() {
       onClick={load}
       className="ml-auto rounded-xl px-4 py-2 bg-[#141a26] border border-white/10 hover:border-white/20"
     >
-      {loading ? "Chargement…" : "Refresh"}
+      {loading ? "Loading…" : "Refresh"}
     </button>
   </div>
 </header>
