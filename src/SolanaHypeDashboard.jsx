@@ -386,7 +386,7 @@ export default function App() {
   <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
     {/* Titre à gauche */}
     <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-      <span className="bg-gradient-to-r from-[#9945FF] via-[#14F195] to-[#00FFA3] bg-clip-text text-transparent">
+      <span className="white">
         Trench Board
       </span>
     </h1>
