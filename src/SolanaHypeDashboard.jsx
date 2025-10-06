@@ -392,6 +392,8 @@ export default function App() {
             height: "30px",
             width: "auto",
             borderRadius: "10px",
+            marginRight: "20px",
+            
           }}
         />
     <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
