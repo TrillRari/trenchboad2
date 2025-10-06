@@ -385,6 +385,15 @@ export default function App() {
             <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
   <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
     {/* Titre à gauche */}
+     <img
+          src="/favicon.png"
+          alt="Trench Board Logo"
+          style={{
+            height: "36px",
+            width: "auto",
+            borderRadius: "8px",
+          }}
+        />
     <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
       <span className="text-white font-semibold text-xl">
         Trench Board
