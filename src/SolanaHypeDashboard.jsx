@@ -392,7 +392,7 @@ export default function App() {
             height: "30px",
             width: "auto",
             borderRadius: "10px",
-            marginRight: "20px",
+            marginRight: "5px",
             
           }}
         />
