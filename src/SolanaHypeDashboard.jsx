@@ -389,9 +389,9 @@ export default function App() {
           src="/favicon.png"
           alt="Trench Board Logo"
           style={{
-            height: "36px",
+            height: "30px",
             width: "auto",
-            borderRadius: "8px",
+            borderRadius: "10px",
           }}
         />
     <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
