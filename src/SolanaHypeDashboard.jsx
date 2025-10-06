@@ -382,8 +382,8 @@ export default function App() {
   // ------------------ Render ------------------
   return (
     <div className="min-h-screen w-full bg-[#090a0f] text-white">
-            <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10">
-  <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
+            <header className="sticky top-0 z-20 backdrop-blur bg-[#0a0b10]/70 border-b border-white/10 gap-x-10">
+  <div className="max-w-7xl mx-auto px-4 py-4 flex items-center ">
     {/* Titre à gauche */}
      <img
           src="/favicon.png"
