@@ -386,7 +386,7 @@ export default function App() {
   <div className="max-w-7xl mx-auto px-4 py-4 flex items-center">
     {/* Titre à gauche */}
     <h1 className="text-xl md:text-2xl font-extrabold tracking-tight">
-      <span className="white">
+      <span className="text-white font-semibold text-xl">
         Trench Board
       </span>
     </h1>
