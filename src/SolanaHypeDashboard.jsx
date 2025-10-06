@@ -622,8 +622,7 @@ export default function App() {
   );
 }
 
-/* --------- Bandeau pub (1 slot, centré, fade) --------- */
-import { useState, useEffect } from "react";
+
 
 function AdBanner({ ads = [], intervalMs = 6000 }) {
   const [index, setIndex] = useState(0);
