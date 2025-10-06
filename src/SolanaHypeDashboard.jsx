@@ -416,53 +416,6 @@ export default function App() {
       <AdBanner ads={ads} intervalMs={8000} selectedCA={selected?.id} />
       import { useState, useEffect } from "react";
 
-// ... reste du code du fichier SolanaHypeDashboard
-
-function AdBanner({ ads = [], intervalMs = 8000 }) {
-  const [index, setIndex] = useState(0);
-
-  // rotation automatique
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setIndex((prev) => (prev + 1) % ads.length);
-    }, intervalMs);
-    return () => clearInterval(interval);
-  }, [ads.length, intervalMs]);
-
-  // navigation manuelle
-  const nextAd = () => setIndex((prev) => (prev + 1) % ads.length);
-  const prevAd = () => setIndex((prev) => (prev - 1 + ads.length) % ads.length);
-
-  if (!ads.length) return null;
-
-  return (
-    <div className="flex items-center justify-center gap-4 px-4 py-3 rounded-xl border border-white/10 bg-[#0f1117]/60 text-white relative overflow-hidden">
-      {/* Flèche gauche */}
-      <button
-        onClick={prevAd}
-        className="text-white/70 hover:text-white text-xl transition"
-        aria-label="Previous ad"
-      >
-        ⬅
-      </button>
-
-      {/* Texte de l’ad */}
-      <div className="flex-1 text-center text-sm sm:text-base font-medium">
-        {ads[index]}
-      </div>
-
-      {/* Flèche droite */}
-      <button
-        onClick={nextAd}
-        className="text-white/70 hover:text-white text-xl transition"
-        aria-label="Next ad"
-      >
-        ➡
-      </button>
-    </div>
-  );
-}
-
 
       <main className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Panneau de contrôle */}
@@ -673,7 +626,7 @@ function AdBanner({ ads = [], intervalMs = 8000 }) {
 /* --------- Bandeau pub (1 slot, centré, fade) --------- */
 import { useState, useEffect } from "react";
 
-function AdBanner({ ads = [], intervalMs = 8000 }) {
+function AdBanner({ ads = [], intervalMs = 6000 }) {
   const [index, setIndex] = useState(0);
   const [fade, setFade] = useState(true);
 
