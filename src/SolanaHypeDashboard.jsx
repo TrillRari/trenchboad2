@@ -671,51 +671,76 @@ function AdBanner({ ads = [], intervalMs = 8000 }) {
 }
 
 /* --------- Bandeau pub (1 slot, centré, fade) --------- */
-function AdBanner({ ads = [], intervalMs = 8000, selectedCA }) {
-  const [i, setI] = React.useState(0);
+import { useState, useEffect } from "react";
+
+function AdBanner({ ads = [], intervalMs = 8000 }) {
+  const [index, setIndex] = useState(0);
+  const [fade, setFade] = useState(true);
+
+  // Rotation automatique avec effet fade
   useEffect(() => {
-    if (!ads.length) return;
-    const t = setInterval(() => setI(v => (v + 1) % ads.length), intervalMs);
-    return () => clearInterval(t);
+    const interval = setInterval(() => {
+      setFade(false);
+      setTimeout(() => {
+        setIndex((prev) => (prev + 1) % ads.length);
+        setFade(true);
+      }, 300); // durée du fade-out avant le switch
+    }, intervalMs);
+
+    return () => clearInterval(interval);
   }, [ads.length, intervalMs]);
 
-  const ad = ads.length ? ads[i % ads.length] : null;
-  if (!ad) return null;
+  // Navigation manuelle
+  const nextAd = () => {
+    setFade(false);
+    setTimeout(() => {
+      setIndex((prev) => (prev + 1) % ads.length);
+      setFade(true);
+    }, 300);
+  };
+
+  const prevAd = () => {
+    setFade(false);
+    setTimeout(() => {
+      setIndex((prev) => (prev - 1 + ads.length) % ads.length);
+      setFade(true);
+    }, 300);
+  };
+
+  if (!ads.length) return null;
 
   return (
-    <section className="bg-[#0f1117]/60 border-b border-white/10">
-      {/* Fade simple via keyframes */}
-      <style>{`@keyframes adFade{from{opacity:0}to{opacity:1}} .ad-fade{animation:adFade 1.2s ease-in-out}`}</style>
-      <div className="max-w-7xl mx-auto px-4">
-        <div key={ad.id} className="ad-fade">
-          <div className="h-10 md:h-12 flex items-center justify-center text-center">
-            {ad.emoji ? <span className="mr-2 text-base md:text-lg" aria-hidden="true">{ad.emoji}</span> : null}
-            <span className="text-sm">
-              <span className="text-white/80">{ad.label}</span>
-              <a href={ad.href} target="_blank" rel="noreferrer" className="font-semibold underline hover:opacity-80">{ad.brand}</a>
-              {ad.note ? <span className="text-white/50"> — {ad.note}</span> : null}
-            </span>
-          </div>
+    <div className="flex items-center justify-center gap-4 px-4 py-3 rounded-xl border border-white/10 bg-[#0f1117]/60 text-white relative overflow-hidden transition-all">
+      {/* Flèche gauche */}
+      <button
+        onClick={prevAd}
+        className="text-white/70 hover:text-white text-xl transition"
+        aria-label="Previous ad"
+      >
+        ⬅
+      </button>
 
-          {selectedCA && (
-            <div className="pb-3 flex items-center justify-center gap-2 flex-wrap">
-              <a
-                href={buildAxiomUrl(selectedCA)}
-                target="_blank" rel="noreferrer"
-                className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-              >Axiom</a>
-              <a
-                href={buildTrojanUrl(selectedCA)}
-                target="_blank" rel="noreferrer"
-                className="px-3 py-1.5 text-xs rounded-lg border border-white/15 bg-white/5 hover:bg-white/10"
-              >Trojan</a>
-            </div>
-          )}
-        </div>
+      {/* Texte avec transition */}
+      <div
+        className={`flex-1 text-center text-sm sm:text-base font-medium transition-opacity duration-300 ${
+          fade ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        {ads[index]}
       </div>
-    </section>
+
+      {/* Flèche droite */}
+      <button
+        onClick={nextAd}
+        className="text-white/70 hover:text-white text-xl transition"
+        aria-label="Next ad"
+      >
+        ➡
+      </button>
+    </div>
   );
 }
+
 
 /* --------- Composants utilitaires --------- */
 function Slider({ label, value, onChange }) {
