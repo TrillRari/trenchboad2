@@ -413,7 +413,7 @@ export default function App() {
 </header>
 
 
-      <AdBanner ads={ads} intervalMs={8000} selectedCA={selected?.id} />
+      <AdBanner ads={ads} intervalMs={6000} selectedCA={selected?.id} />
       import { useState, useEffect } from "react";
 
 
