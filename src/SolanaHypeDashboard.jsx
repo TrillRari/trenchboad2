@@ -414,6 +414,8 @@ export default function App() {
 
 
       <AdBanner ads={ads} intervalMs={6000} selectedCA={selected?.id} />
+      import { useState, useEffect } from "react";
+
 
 
       <main className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 lg:grid-cols-12 gap-4">
